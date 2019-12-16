@@ -33,18 +33,20 @@ class Login extends Component {
     }
   }
 
-onChange = e => {
-    this.setState({ [e.target.id]: e.target.value });
+  onChange = e => {
+      this.setState({ [e.target.id]: e.target.value });
   };
-onSubmit = e => {
-    e.preventDefault();
-const userData = {
-      email: this.state.email,
-      password: this.state.password
-    };
-  console.log(userData);
-  this.props.loginUser(userData); // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
+
+  onSubmit = e => {
+      e.preventDefault();
+      const userData = {
+        email: this.state.email,
+        password: this.state.password
+      };
+      console.log(userData);
+      this.props.loginUser(userData); // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
   };
+
 render() {
     const { errors } = this.state;
 return (
@@ -119,6 +121,7 @@ return (
     );
   }
 }
+
 Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
