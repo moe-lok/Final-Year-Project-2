@@ -73,7 +73,8 @@ class BondScanPage extends Component {
     _scan = (matCat) => {
         if(matCat != "OUT"){
             this.setState({materialCategory: matCat,
-            results: ''})
+            results: '',
+            In: 0,})
             this.setState({ scanning: !this.state.scanning })
         }else if(matCat == "OUT"){
             this.setState({ materialCategory: '',
@@ -169,9 +170,51 @@ class BondScanPage extends Component {
     onOutSubmit(e){
         e.preventDefault();
         console.log("OUT submit button is pressed")
+        // this.state.Out, this.state.outMaterialId
+        // submit to bonder entry
+        const bon = {
+            machineId: this.state.bonderId,
+            materialCategory: this.state.materialCategory,
+            materialId: this.state.results,
+            In: this.state.In,
+            outMaterialId: this.state.outMaterialId,
+            Out: this.state.Out,
+        }
+
+        console.log(bon)
+        axios.post('/api/bon/add', bon)
+        .then(res => {
+            console.log(res.data)
+
+            const entry = {
+                machineId: this.state.bonderId,
+                materialId: this.state.outMaterialId,
+                In: this.state.In,
+                Out: this.state.Out
+            }
+    
+            console.log(entry);
+            
+            // submit to entry
+            axios.post('/api/entries/add', entry)
+            .then(res => {console.log(res.data)
+                window.location = '/dashboard';
+            })
+        })
+
+        // TODO: remove from material A and B
+        /**
+         * find one last bonder material A
+         * where machineId matches and materialCategory is A
+         * subtract the output amount if In is bigger than Out
+         * remove if In == Out
+         * remove last one and find the next last if In < Out
+         * 
+         * do the same for material B
+         */
     }
 
-    material(cat){
+    materialRow(cat){
         return this.state.bonEntries.map((entry, i) => {
 
             if(entry.materialCategory == cat){
@@ -184,6 +227,194 @@ class BondScanPage extends Component {
         })
     }
 
+    scanningWindow(){
+        var divStyle = {
+            margin: 20,
+        }
+        return(
+            <div>
+                {!(this.state.results.length || this.state.outMaterialId.length) &&
+                    <button className="btn btn-primary" style={divStyle} onClick={this._scan}>
+                    {this.state.scanning ? 'Stop' : 'Start'}
+                    </button>
+                }
+                <Scanner onDetected={this._onDetected} /> 
+            </div>
+        );
+    }
+
+    materialTable(){
+        return(
+            <Container>
+                <Row>
+                    <Col>
+                        <h3>Material A</h3>
+                        <h3>Qty: {this.state.QtyA}</h3>
+                        <Table striped bordered hover size="sm">
+                            <thead>
+                                <tr>
+                                <th>#</th>
+                                <th>Mat Id</th>
+                                <th>Qty In</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.materialRow("A")}
+                            </tbody>
+                        </Table>
+                    </Col>
+                    <Col>
+                        <h3>Material B</h3>
+                        <h3>Qty: {this.state.QtyB}</h3>
+                        <Table striped bordered hover size="sm">
+                            <thead>
+                                <tr>
+                                <th>#</th>
+                                <th>Mat Id</th>
+                                <th>Qty In</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.materialRow("B")}
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Button onClick={() => this._scan("A")} variant="primary" size="sm">
+                        Scan Mat A
+                        </Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => this._scan("B")} variant="primary" size="sm">
+                        Scan Mat B
+                        </Button>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                    {this.resultCode()}
+                    </Col>
+                </Row>
+            </Container>
+        );
+    }
+
+    formIn(){
+        return(
+            <Row>
+                <Col>
+                    <Form onSubmit={this.onSubmit}>
+                        <Form.Group controlId="orderNumber">
+                            <Form.Label>IN</Form.Label>
+                            <Form.Control onChange={this.onChangedIn}
+                            type="number" placeholder="Enter In number" />
+                            <Form.Text className="text-muted">
+                            Please enter number only.
+                            </Form.Text>
+                        </Form.Group>
+                        <Row>
+                            <Button type="submit">submit</Button>
+                        </Row>
+                    </Form>
+                </Col>
+            </Row>
+        );
+    }
+
+    scanMaterialOut(){
+        var divStyle = {
+            margin: 20,
+        }
+        if(this.state.outMaterialId.length){
+            return(
+                <div style={divStyle}>
+                    <Row>
+                        <Col>
+                        <h4>Expected Out Qty: {this.state.expectedOut}</h4>
+                        <h4>Final Out Qty: {this.state.Out}</h4>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                        {this.outResultCode()}
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                        <Form onSubmit={this.onOutSubmit}>
+                            <Form.Group controlId="formGroupEmail">
+                                <Form.Label>Key In Reject</Form.Label>
+                                <Form.Control onChange={this.onChangedYieldOutput} 
+                                type="number" placeholder="Please enter numbers only" />
+                            </Form.Group>
+                            <Button variant="primary" type="submit">
+                                Submit
+                            </Button>
+                        </Form>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                        <Button onClick={() => this._scan("OUT")} variant="primary" size="sm">
+                            Scan Mat Out
+                        </Button>   
+                        </Col>
+                    </Row>
+                </div>
+            );
+        }else{
+            return(null);
+        }
+    }
+
+    scanMatOutButton(){
+        return(
+            <Row>
+                <Col>
+                <Button onClick={() => this._scan("OUT")} variant="primary" size="sm">
+                    Scan Mat Out
+                </Button>
+                </Col>
+            </Row>
+        );
+    }
+
+    formOut(){
+        var divStyle = {
+            margin: 20,
+        }
+        return(
+            <div>
+                {this.scanMaterialOut()}
+                {this.scanMatOutButton()}
+            </div>
+        );
+    }
+
+    mainBody(){
+        var divStyle = {
+            margin: 20,
+        }
+        return(
+            <div>
+                <Button variant="outline-secondary" style={divStyle} onClick={this._back}>back</Button>
+                <h1>This is Bonder {this.state.bonderId}</h1>
+                <Container>
+                    {this.materialTable()}
+                    {this.state.results ? 
+                    this.formIn()
+                    :
+                    this.formOut()
+                    }
+                </Container>
+  
+                <h1>Bonder Scan Page</h1>
+            </div>
+        );
+    }
+
     render(){
         var divStyle = {
             margin: 20,
@@ -192,142 +423,9 @@ class BondScanPage extends Component {
         return(
             <div>
                 {this.state.scanning ?
-                <div>
-                    {!(this.state.results.length || this.state.outMaterialId.length) &&
-                        <button className="btn btn-primary" style={divStyle} onClick={this._scan}>
-                        {this.state.scanning ? 'Stop' : 'Start'}
-                        </button>
-                    }
-                    <Scanner onDetected={this._onDetected} /> 
-                </div> 
+                this.scanningWindow()
                 : 
-                <div>
-                    <Button variant="outline-secondary" style={divStyle} onClick={this._back}>back</Button>
-                    <h1>This is Bonder {this.state.bonderId}</h1>
-                    <Container>
-                    <Row>
-                        <Col>
-                            <h3>Material A</h3>
-                            <h3>Qty: {this.state.QtyA}</h3>
-                            <Table striped bordered hover size="sm">
-                                <thead>
-                                    <tr>
-                                    <th>#</th>
-                                    <th>Mat Id</th>
-                                    <th>Qty In</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {this.material("A")}
-                                </tbody>
-                            </Table>
-                        </Col>
-                        <Col>
-                            <h3>Material B</h3>
-                            <h3>Qty: {this.state.QtyB}</h3>
-                            <Table striped bordered hover size="sm">
-                                <thead>
-                                    <tr>
-                                    <th>#</th>
-                                    <th>Mat Id</th>
-                                    <th>Qty In</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {this.material("B")}
-                                </tbody>
-                            </Table>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Button onClick={() => this._scan("A")} variant="primary" size="sm">
-                            Scan Mat A
-                            </Button>
-                        </Col>
-                        <Col>
-                            <Button onClick={() => this._scan("B")} variant="primary" size="sm">
-                            Scan Mat B
-                            </Button>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                        {this.resultCode()}
-                        </Col>
-                    </Row>
-                    {this.state.results ? 
-                    <Row>
-                        <Col>
-                            <Form onSubmit={this.onSubmit}>
-                                <Form.Group controlId="orderNumber">
-                                    <Form.Label>IN</Form.Label>
-                                    <Form.Control onChange={this.onChangedIn}
-                                    type="number" placeholder="Enter In number" />
-                                    <Form.Text className="text-muted">
-                                    Please enter number only.
-                                    </Form.Text>
-                                </Form.Group>
-                                <Row>
-                                    <Button type="submit">submit</Button>
-                                </Row>
-                            </Form>
-                        </Col>
-                    </Row>
-                    :
-                    <div>
-                        {this.state.outMaterialId.length ? 
-                            <div style={divStyle}>
-                                <Row>
-                                    <Col>
-                                    <h4>Expected Out Qty: {this.state.expectedOut}</h4>
-                                    <h4>Final Out Qty: {this.state.Out}</h4>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                    {this.outResultCode()}
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                    <Form onSubmit={this.onSubmit}>
-                                        <Form.Group controlId="formGroupEmail">
-                                            <Form.Label>Key In Reject</Form.Label>
-                                            <Form.Control onChange={this.onChangedYieldOutput} 
-                                            type="number" placeholder="Please enter numbers only" />
-                                        </Form.Group>
-                                        <Button variant="primary" type="submit">
-                                            Submit
-                                        </Button>
-                                    </Form>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                    <Button onClick={() => this._scan("OUT")} variant="primary" size="sm">
-                                        Scan Mat Out
-                                    </Button>   
-                                    </Col>
-                                </Row>
-                            </div>
-                            :
-                            <Row>
-                                <Col>
-                                <Button onClick={() => this._scan("OUT")} variant="primary" size="sm">
-                                    Scan Mat Out
-                                </Button>
-                                </Col>
-                            </Row>
-                        }
-                    </div>
-                    }
-                    
-                    </Container>
-
-                    
-                    <h1>Bonder Scan Page</h1>
-                </div>
+                this.mainBody()
                 }
                 
             </div>
