@@ -53,7 +53,6 @@ class ConfMachinesPage extends Component {
                     id:{currmachine.machineId+" "}  
                     name:{currmachine.machineName+" "} 
                     order:{currmachine.ordering+" "}
-                    index:{i}
                 </ListGroup.Item>
             }
         });
