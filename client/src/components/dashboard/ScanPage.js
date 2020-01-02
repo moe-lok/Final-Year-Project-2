@@ -127,6 +127,9 @@ class ScanPage extends Component {
                 
                 axios.post('/api/entries/add', entry)
                 .then(res => {console.log(res.data)
+
+                    // TODO: add to total increment
+
                     window.location = '/dashboard';
                 })
 
@@ -285,6 +288,11 @@ class ScanPage extends Component {
                 if(res.data != null){
                     console.log("Machine is registered ######")
                     this.setState({machineData: res.data, machineRecognised: true})
+                    if(res.data.machineType == "BON"){
+                        console.log("this is Bonder machine #####")
+                        this.goToBonderPage()
+                    }
+
                     if (machineId.startsWith("BON")){
                         console.log("this is Bonder machine #####")
                         this.goToBonderPage()
