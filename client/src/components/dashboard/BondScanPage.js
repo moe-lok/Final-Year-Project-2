@@ -13,6 +13,7 @@ class BondScanPage extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.componentDidMount = this.componentDidMount.bind(this);
         this.onChangedYieldOutput = this.onChangedYieldOutput.bind(this);
+        this.onOutSubmit = this.onOutSubmit.bind(this);
 
         this.state = {
             bonderId: '',
@@ -167,6 +168,43 @@ class BondScanPage extends Component {
         })
     }
 
+    // delete material recursively
+    materialRemove(total, machineId, category){
+        console.log("inside materialRemove function ######")
+        var t = total
+
+        axios.post('/api/bon/delinc',{machineId: machineId, materialCategory: category}).then(bon => {
+            console.log('searching for next last bonder entry ######')
+            console.log(bon.data)
+            console.log(bon.data._id)
+            if(t > bon.data.In){
+                console.log("total > In  ######")
+                axios.post('/api/bon/delinc1/' + bon.data._id).then(res => {
+                    console.log("deleting the bonder ######")
+                    t = t - bon.data.In
+                    console.log(t)
+                    this.materialRemove(t, machineId, category);
+                }).catch((error) => {
+                    console.log(error)
+                })
+            }else if(t <= bon.data.In){
+                console.log("total <= In  ######")
+                axios.post('/api/bon/delinc2/'+ bon.data._id, {total: -t}).then(res => {
+                    console.log("decrementing the bonder ######")
+                    t = 0
+                    console.log(t)
+                }).catch((error) => {
+                    console.log(error)
+                })
+            }
+
+        }).catch((error) => {
+            console.log(error)
+        })
+        console.log("t is 0 ######")
+        console.log(t)
+    }
+
     onOutSubmit(e){
         e.preventDefault();
         console.log("OUT submit button is pressed")
@@ -182,6 +220,7 @@ class BondScanPage extends Component {
         }
 
         console.log(bon)
+        // add to bonder entry
         axios.post('/api/bon/add', bon)
         .then(res => {
             console.log(res.data)
@@ -197,21 +236,56 @@ class BondScanPage extends Component {
             
             // submit to entry
             axios.post('/api/entries/add', entry)
-            .then(res => {console.log(res.data)
-                window.location = '/dashboard';
+            .then(res => {
+                console.log(res.data)
+
+                // delete from each material input
+                if(this.state.QtyA == this.state.expectedOut){
+                    console.log("attempting to delete all bon material A #######")
+                    const del = {
+                        machineId: this.state.bonderId,
+                        materialCategory: "A"
+                    }
+
+                    // delete all from material A
+                    axios.post('/api/bon/deletematerial', del)
+                    .then(resp => {
+                        console.log(resp.data)
+                        // delete partially from material B
+                        this.materialRemove(this.state.QtyA, this.state.bonderId, "B")
+                        window.location = '/dashboard';
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+
+                }else if(this.state.QtyB == this.state.expectedOut){
+                    console.log("attempting to delete all bon material B #######")
+                    const del = {
+                        machineId: this.state.bonderId,
+                        materialCategory: "B"
+                    }
+                    
+                    // delete all from material B
+                    axios.post('/api/bon/deletematerial', del)
+                    .then(res => {
+                        console.log(res.data)
+                        // delete partially from material A
+                        this.materialRemove(this.state.QtyB, this.state.bonderId, "A")
+                        window.location = '/dashboard';
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+                }
+
+                
+            }).catch((error) => {
+                console.log(error)
             })
+
+        }).catch((error) => {
+            console.log(error)
         })
 
-        // TODO: remove from material A and B
-        /**
-         * find one last bonder material A
-         * where machineId matches and materialCategory is A
-         * subtract the output amount if In is bigger than Out
-         * remove if In == Out
-         * remove last one and find the next last if In < Out
-         * 
-         * do the same for material B
-         */
     }
 
     materialRow(cat){
@@ -353,13 +427,6 @@ class BondScanPage extends Component {
                                 Submit
                             </Button>
                         </Form>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                        <Button onClick={() => this._scan("OUT")} variant="primary" size="sm">
-                            Scan Mat Out
-                        </Button>   
                         </Col>
                     </Row>
                 </div>
