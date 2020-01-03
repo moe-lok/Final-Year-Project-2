@@ -293,10 +293,6 @@ class ScanPage extends Component {
                         this.goToBonderPage()
                     }
 
-                    if (machineId.startsWith("BON")){
-                        console.log("this is Bonder machine #####")
-                        this.goToBonderPage()
-                    }
 
                 }else{
                     console.log("Machine is not registered ######")

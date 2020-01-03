@@ -27,6 +27,8 @@ class BondScanPage extends Component {
             QtyB:0,
             expectedOut:0,
             rejectAmt: 0,
+            materialIdExists: false,
+            prevOut0: false,
         }
     }
 
@@ -97,6 +99,38 @@ class BondScanPage extends Component {
             this.setState({ results: result.codeResult.code })
             this.setState({ scanning: !this.state.scanning })
             console.log(this.state.results)
+
+            // get the in from last process
+            let matId = result.codeResult.code
+
+            // api call to get last occurance of material ID
+            axios.get('/api/entries/materialfindone/'+ matId).then(response => {
+
+                console.log(response.data)
+                // there is last occurance
+                if (response.data != null){
+
+                    console.log("only material exist ####")
+                    this.setState({ materialIdExists: true, In: response.data.Out })
+                    if(response.data.Out < 1){
+                        // material has not finished last process
+                        console.log("previous process output is 0 ####")
+                        this.setState({prevOut0: true, procEntry: response.data})
+                    }else{
+                        console.log("previous process complete")
+                        console.log(response.data.Out)
+                        this.setState({prevOut0: false, In: response.data.Out})
+                    }
+
+                }else{
+                    // this material id is new
+                    this.setState({ materialIdExists: false})
+                }
+
+            }).catch((error) => {
+                console.log(error)
+            })  
+
         }
         
     }
@@ -377,23 +411,31 @@ class BondScanPage extends Component {
 
     formIn(){
         return(
-            <Row>
-                <Col>
-                    <Form onSubmit={this.onSubmit}>
-                        <Form.Group controlId="orderNumber">
-                            <Form.Label>IN</Form.Label>
-                            <Form.Control onChange={this.onChangedIn}
-                            type="number" placeholder="Enter In number" />
-                            <Form.Text className="text-muted">
-                            Please enter number only.
-                            </Form.Text>
-                        </Form.Group>
-                        <Row>
-                            <Button type="submit">submit</Button>
-                        </Row>
-                    </Form>
-                </Col>
-            </Row>
+            <div>
+                {this.state.prevOut0 ?
+                    <h3>Please fill up the previous process</h3>
+                :
+                    <Row>
+                        <Col>
+                            {this.state.materialIdExists && <h3>This is a new material ID</h3>}
+                            <Form onSubmit={this.onSubmit}>
+                                <Form.Group controlId="orderNumber">
+                                    <Form.Label>IN</Form.Label>
+                                    <Form.Control onChange={this.onChangedIn} value={this.state.In}
+                                    type="number" placeholder="Enter In number" />
+                                    <Form.Text className="text-muted">
+                                    Please enter number only.
+                                    </Form.Text>
+                                </Form.Group>
+                                <Row>
+                                    <Button type="submit">submit</Button>
+                                </Row>
+                            </Form>
+                        </Col>
+                    </Row>
+                    
+                }
+            </div>
         );
     }
 
