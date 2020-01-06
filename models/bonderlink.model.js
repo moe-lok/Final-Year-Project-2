@@ -8,7 +8,7 @@ const bonderlinkSchema = new Schema({
     materialIdB: {type: String},
     InA: {type: Number},
     InB: {type: Number},
-    outMaterialId:{type: String},
+    outMaterialId:{type: String, required: true},
     Out:{type: Number},
 },{
     timestamps: true,

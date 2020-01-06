@@ -5,6 +5,7 @@ import { logoutUser } from "../../actions/authActions";
 import Quagga from 'quagga'; // ES6
 import axios from 'axios';
 import {Container, Row, Col, Table, Button, Form} from 'react-bootstrap'
+import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 
 const Entry = props => (
     <tr>
@@ -23,12 +24,21 @@ class Dashboard extends Component {
 
       this.deleteEntry = this.deleteEntry.bind(this);
 
-      this.state = {entries: []};
+      this.state = {
+        entries: [],
+        bonlinkentry: [],
+      };
     }
 
     componentDidMount(){
       axios.get('/api/entries/').then(response => {
         this.setState({ entries: response.data })
+      }).catch((error) => {
+        console.log(error)
+      })
+
+      axios.get('/api/bonlink/').then(response => {
+        this.setState({ bonlinkentry: response.data })
       }).catch((error) => {
         console.log(error)
       })
@@ -56,7 +66,25 @@ class Dashboard extends Component {
 
   entryList(){
       return this.state.entries.map(currententry => {
-          return <Entry entry={currententry} deleteEntry={this.deleteEntry} key={currententry._id}/>;
+          return <tr key={currententry._id}>
+          <td>{currententry.machineId}</td>
+          <td>{currententry.materialId}</td>
+          <td>{currententry.In}</td>
+          <td>{currententry.Out}</td>
+          <td>{new Date(currententry.updatedAt).toLocaleDateString()}</td>
+          <td>{new Date(currententry.updatedAt).toLocaleTimeString()}</td>
+          {this.state.bonlinkentry.map(bonlink => {
+            if(bonlink.machineId == currententry.machineId && bonlink.outMaterialId == currententry.materialId){
+              return <React.Fragment>
+
+                <td>{bonlink.materialIdA}</td>
+                <td>{bonlink.InA}</td>
+                <td>{bonlink.materialIdB}</td>
+                <td>{bonlink.InB}</td>
+              </React.Fragment>
+            }
+          })}
+      </tr>;
       })
   }
 
@@ -79,15 +107,42 @@ return (
 
             <div style={divStyle}>
                 <h3>Material tracking</h3>
-                <table className="table">
+                <Container>
+                  <Row>
+                    <Col>
+                      <Button onClick={this.onLogoutClick}>Logout</Button>
+                    </Col>
+                    <Col>
+                      <Button onClick={this.onScanBarcode}>Scan</Button>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col>
+                      <Button onClick={this.toConfPage}>Conf Machines</Button>
+                    </Col>
+                  </Row>
+                </Container>
+                <ReactHTMLTableToExcel
+                    id="test-table-xls-button"
+                    className="download-table-xls-button"
+                    table="table-to-xls"
+                    filename="tablexls"
+                    sheet="tablexls"
+                    buttonText="Download as XLS"/>
+                <table className="table" id="table-to-xls">
                     <thead>
                         <tr>
-                            <th scope="col">Machine Id</th>
-                            <th scope="col">Material Id</th>
-                            <th scope="col">In</th>
-                            <th scope="col">Out</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Time</th>
+                          <th scope="col">Machine Id</th>
+                          <th scope="col">Material Id</th>
+                          <th scope="col">In</th>
+                          <th scope="col">Out</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Time</th>
+                          <th scope="col">MatId A</th>
+                          <th scope="col">In A</th>
+                          <th scope="col">MatId B</th>
+                          <th scope="col">In B</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,40 +150,6 @@ return (
                     </tbody>
                 </table>
             </div>
-
-            <button
-              style={{
-                width: "150px",
-                borderRadius: "3px",
-                letterSpacing: "1.5px",
-                marginTop: "1rem",
-                margin: 20
-              }}
-              onClick={this.onLogoutClick}
-              className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-            >
-              Logout
-            </button>
-            <button
-              style={{
-                width: "150px",
-                borderRadius: "3px",
-                letterSpacing: "1.5px",
-                marginTop: "1rem",
-                margin: 20
-              }}
-              onClick={this.onScanBarcode}
-              className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-            >
-              Scan
-            </button>
-            <Container>
-              <Row>
-                <Col>
-                  <Button onClick={this.toConfPage}>Conf Machines</Button>
-                </Col>
-              </Row>
-            </Container>
           </div>
         </div>
       </div>

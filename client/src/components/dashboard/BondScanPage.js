@@ -282,9 +282,40 @@ class BondScanPage extends Component {
             .then(res => {
                 console.log(res.data)
 
+                var matA = "";
+                var matB = "";
+                var inputA = 0;
+                var inputB = 0;
+
+                this.state.bonEntries.map((entry, i) => {
+                    if(entry.materialCategory == "A"){
+                        matA = entry.materialId;
+                        inputA = entry.In;
+                    }else if(entry.materialCategory == "B"){
+                        matB = entry.materialId;
+                        inputB = entry.In;
+                    }
+                })
+
+                const bonlink = {
+                    machineId: this.state.bonderId,
+                    materialIdA: matA,
+                    materialIdB: matB,
+                    InA: inputA,
+                    InB: inputB,
+                    outMaterialId: this.state.outMaterialId,
+                    Out: this.state.Out                    
+                }
+
+                axios.post('/api/bonlink/add', bonlink)
+                .then( res => { 
+                    console.log(res.data)
+                }).catch((error) => {
+                    console.log(error)
+                })
                 this.materialRemove(this.state.expectedOut, this.state.bonderId, "A")
                 this.materialRemove(this.state.expectedOut, this.state.bonderId, "B")
-                //window.location = '/dashboard';
+                window.location = '/dashboard';
                 
             }).catch((error) => {
                 console.log(error)

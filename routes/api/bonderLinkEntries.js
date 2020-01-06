@@ -17,7 +17,7 @@ router.route('/add').post((req, res) => {
     const outMaterialId = req.body.outMaterialId;
     const Out = Number(req.body.Out);
 
-    const newBonLink = new Bon({
+    const newBonLink = new BonLink({
         machineId,
         materialIdA,
         materialIdB,
