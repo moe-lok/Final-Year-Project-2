@@ -14,6 +14,7 @@ class BondScanPage extends Component {
         this.componentDidMount = this.componentDidMount.bind(this);
         this.onChangedYieldOutput = this.onChangedYieldOutput.bind(this);
         this.onOutSubmit = this.onOutSubmit.bind(this);
+        this.onChangedYieldReject = this.onChangedYieldReject.bind(this);
 
         this.state = {
             bonderId: '',
@@ -57,9 +58,11 @@ class BondScanPage extends Component {
                     }
                 })
 
+                /*
                 this.setState({
                     expectedOut: Math.min(this.state.QtyA, this.state.QtyB)
                 })
+                */
             }
         }).catch((error) => {
             console.log(error)
@@ -162,6 +165,12 @@ class BondScanPage extends Component {
     }
 
     onChangedYieldOutput(e){
+        this.setState({
+            expectedOut: e.target.value
+        })
+    }
+
+    onChangedYieldReject(e){
 
         this.setState({
             Out: this.state.expectedOut - e.target.value,
@@ -273,44 +282,9 @@ class BondScanPage extends Component {
             .then(res => {
                 console.log(res.data)
 
-                // delete from each material input
-                if(this.state.QtyA == this.state.expectedOut){
-                    console.log("attempting to delete all bon material A #######")
-                    const del = {
-                        machineId: this.state.bonderId,
-                        materialCategory: "A"
-                    }
-
-                    // delete all from material A
-                    axios.post('/api/bon/deletematerial', del)
-                    .then(resp => {
-                        console.log(resp.data)
-                        // delete partially from material B
-                        this.materialRemove(this.state.QtyA, this.state.bonderId, "B")
-                        window.location = '/dashboard';
-                    }).catch((error) => {
-                        console.log(error)
-                    })
-
-                }else if(this.state.QtyB == this.state.expectedOut){
-                    console.log("attempting to delete all bon material B #######")
-                    const del = {
-                        machineId: this.state.bonderId,
-                        materialCategory: "B"
-                    }
-                    
-                    // delete all from material B
-                    axios.post('/api/bon/deletematerial', del)
-                    .then(res => {
-                        console.log(res.data)
-                        // delete partially from material A
-                        this.materialRemove(this.state.QtyB, this.state.bonderId, "A")
-                        window.location = '/dashboard';
-                    }).catch((error) => {
-                        console.log(error)
-                    })
-                }
-
+                this.materialRemove(this.state.expectedOut, this.state.bonderId, "A")
+                this.materialRemove(this.state.expectedOut, this.state.bonderId, "B")
+                //window.location = '/dashboard';
                 
             }).catch((error) => {
                 console.log(error)
@@ -460,10 +434,16 @@ class BondScanPage extends Component {
                     <Row>
                         <Col>
                         <Form onSubmit={this.onOutSubmit}>
-                            <Form.Group controlId="formGroupEmail">
-                                <Form.Label>Key In Reject</Form.Label>
+                            <Form.Group controlId="formGroupOutput">
+                                <Form.Label>Key in Output Qty</Form.Label>
                                 <Form.Control onChange={this.onChangedYieldOutput} 
-                                type="number" placeholder="Please enter numbers only" />
+                                type="number" placeholder="Please enter Output numbers only" />
+                            </Form.Group>
+
+                            <Form.Group controlId="formGroupReject">
+                                <Form.Label>Key In Reject</Form.Label>
+                                <Form.Control onChange={this.onChangedYieldReject} 
+                                type="number" placeholder="Please enter reject numbers only" />
                             </Form.Group>
                             <Button variant="primary" type="submit">
                                 Submit

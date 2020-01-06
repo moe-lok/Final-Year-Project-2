@@ -7,6 +7,7 @@ const users = require("./routes/api/users");
 const entriesRouter = require("./routes/api/entries")
 const confMachRouter = require("./routes/api/confmachine")
 const bonRouter = require("./routes/api/bonderEntries")
+const bonLinkRouter = require("./routes/api/bonderLinkEntries")
 const path = require("path")
 require("dotenv").config()
 
@@ -33,6 +34,7 @@ app.use("/api/users", users);
 app.use("/api/entries", entriesRouter)
 app.use("/api/confmach", confMachRouter)
 app.use("/api/bon", bonRouter)
+app.use("/api/bonlink", bonLinkRouter)
 
 app.use(express.static(path.join(__dirname,"client", "build")))
 

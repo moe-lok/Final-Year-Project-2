@@ -316,7 +316,7 @@ class ScanPage extends Component {
     }
 
     onConfirm = e => {
-        //e.preventDefault();
+        e.preventDefault();
         console.log("confirm button is pressed")
         let result = {codeResult: {code: this.state.machineId, format: "text"}, threshold: undefined};
         this.setState({ results: [result] }, this.initFunc);
