@@ -5,7 +5,8 @@ import { logoutUser } from "../../actions/authActions";
 import Quagga from 'quagga'; // ES6
 import axios from 'axios';
 import {Container, Row, Col, Table, Button, Form} from 'react-bootstrap'
-import ReactHTMLTableToExcel from 'react-html-table-to-excel';
+import * as FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
 
 const Entry = props => (
     <tr>
@@ -62,6 +63,17 @@ class Dashboard extends Component {
 
   toConfPage = () =>{
     this.props.history.push("/confmachpage");
+  }
+
+  exportTable = () =>{
+    var wb = XLSX.utils.table_to_book(document.getElementById('mytable'), {sheet:"FCI"});
+
+    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    const fileExtension = '.xlsx';
+
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], {type: fileType});
+    FileSaver.saveAs(data, "FCI" + fileExtension);
   }
 
   entryList(){
@@ -121,16 +133,12 @@ return (
                     <Col>
                       <Button onClick={this.toConfPage}>Conf Machines</Button>
                     </Col>
+                    <Col>
+                      <Button onClick={this.exportTable}>Export</Button>
+                    </Col>
                   </Row>
                 </Container>
-                <ReactHTMLTableToExcel
-                    id="test-table-xls-button"
-                    className="download-table-xls-button"
-                    table="table-to-xls"
-                    filename="tablexls"
-                    sheet="tablexls"
-                    buttonText="Download as XLS"/>
-                <table className="table" id="table-to-xls">
+                <table className="table" id="mytable">
                     <thead>
                         <tr>
                           <th scope="col">Machine Id</th>
