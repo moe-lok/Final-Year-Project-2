@@ -102,12 +102,6 @@ class ConfMachinesPage extends Component {
                         </ListGroup>
                     </ListGroup.Item>
                     <ListGroup.Item>
-                    <p>POST BONDER</p>
-                        <ListGroup>
-                            {this.machines("PBON")}
-                        </ListGroup>
-                    </ListGroup.Item>
-                    <ListGroup.Item>
                     <p>OLE</p>
                         <ListGroup>
                             {this.machines("OLE")}

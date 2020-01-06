@@ -21,7 +21,8 @@ class Scanner extends Component {
         decoder: {
           readers: ["code_128_reader",
                     "code_39_reader",
-                    "code_39_vin_reader",]
+                    "code_39_vin_reader",],
+          multiple: false
         },
         locate: true
       },

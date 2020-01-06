@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {Card} from 'react-bootstrap'
+import {Card, Button, Form,} from 'react-bootstrap'
 import ReactDOM from 'react-dom'
 import Scanner from './Scanner'
 import Result from './Result'
@@ -15,6 +15,9 @@ class ScanPage extends Component {
         this._scan = this._scan.bind(this);
         this._rescan = this._rescan.bind(this);
         this._onDetected = this._onDetected.bind(this);
+        this.onChangedMachineId = this.onChangedMachineId.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.initFunc = this.initFunc.bind(this);
         
         this.state = {
             scanning: false,
@@ -174,9 +177,12 @@ class ScanPage extends Component {
         this._scan()
     }
 
-    _onDetected = result => {
-        this.setState({ results: this.state.results.concat([result]) })
-        this.setState({ scanning: !this.state.scanning })
+    initFunc = () => {
+        console.log("inside initFunc ####")
+        
+        console.log(this.state.results)
+        console.log(this.state.results.length)
+        
 
         if (this.state.results.length > 1){
             let matId = this.state.results[1].codeResult.code
@@ -303,6 +309,26 @@ class ScanPage extends Component {
         }
     }
 
+    _onDetected = result => {
+        this.setState({ scanning: !this.state.scanning })
+        this.setState({ results: this.state.results.concat([result]) })
+        this.initFunc();
+    }
+
+    onConfirm = e => {
+        //e.preventDefault();
+        console.log("confirm button is pressed")
+        let result = {codeResult: {code: this.state.machineId, format: "text"}, threshold: undefined};
+        this.setState({ results: [result] }, this.initFunc);
+    }
+
+    onChangedMachineId(e){
+        this.setState({
+            machineId: e.target.value
+        })
+        
+    }
+
     prevOutEmpty(){
         var divStyle = {
             margin: 20,
@@ -320,7 +346,7 @@ class ScanPage extends Component {
             margin: 20,
         }
         if(this.state.results.length == 1 && this.state.machineRecognised){
-            console.log("result len is 1 and machine recognised")
+            console.log("result len is 1 and machine recognised")         
             return(
                 <div>
                     <button type="button" className="btn btn-primary" style={divStyle} onClick={this._rescan}>retake</button>
@@ -494,6 +520,18 @@ class ScanPage extends Component {
                 <Result key={result.codeResult.code + i} result={result} index={i}/>
             ))}
             </ul>
+
+            {(this.state.results.length > 0) ? null : 
+                
+                <Form style={divStyle} onSubmit={this.onConfirm}>
+                    <Form.Group controlId="machineID">
+                        <Form.Label>Machine ID</Form.Label>
+                        <Form.Control onChange={this.onChangedMachineId} 
+                        type="text" placeholder="Enter machine ID" />
+                    </Form.Group>
+                    <Button type="submit">confirm</Button>
+                </Form>
+            }
 
             {this.state.scanning ? <Scanner onDetected={this._onDetected} /> : null}
 

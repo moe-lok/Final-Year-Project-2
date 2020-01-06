@@ -16,6 +16,8 @@ class AddMachinePage extends Component {
         this.onChangedMachineName = this.onChangedMachineName.bind(this);
         this.onChangedMachineOrder = this.onChangedMachineOrder.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onChangedMachineId = this.onChangedMachineId.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
         
         this.state = {
             scanning: false,
@@ -23,6 +25,7 @@ class AddMachinePage extends Component {
             machineType:'',
             machineName:'',
             order:'',
+            machineId:'',
         }
     }
 
@@ -80,6 +83,18 @@ class AddMachinePage extends Component {
         })
     }
 
+    onConfirm(e){
+        e.preventDefault();
+        console.log("confirm button is pressed")
+        this.setState({ results: this.state.results.concat([{codeResult: {code: this.state.machineId, format: "text"}}]) })
+    }
+
+    onChangedMachineId(e){
+        this.setState({
+            machineId: e.target.value
+        })
+    }
+
     render(){
         var divStyle = {
             margin: 20,
@@ -101,6 +116,18 @@ class AddMachinePage extends Component {
                     ))}
                 </ul>
 
+                {(this.state.results.length > 0) ? null : 
+                
+                    <Form style={divStyle} onSubmit={this.onConfirm}>
+                        <Form.Group controlId="machineID">
+                            <Form.Label>Machine ID</Form.Label>
+                            <Form.Control onChange={this.onChangedMachineId} 
+                            type="text" placeholder="Enter machine ID" />
+                        </Form.Group>
+                        <Button type="submit">confirm</Button>
+                    </Form>
+                }
+
                 {this.state.scanning ? <Scanner onDetected={this._onDetected} /> : null}
 
                 {(this.state.results.length > 0) && 
@@ -114,7 +141,6 @@ class AddMachinePage extends Component {
                                             <Dropdown.Item as="button" type="button" onClick={() => this.dropdownMachType("SAW")}>SAW</Dropdown.Item>
                                             <Dropdown.Item as="button" type="button" onClick={() => this.dropdownMachType("CVL")}>CVL</Dropdown.Item>
                                             <Dropdown.Item as="button" type="button" onClick={() => this.dropdownMachType("BON")}>BON</Dropdown.Item>
-                                            <Dropdown.Item as="button" type="button" onClick={() => this.dropdownMachType("PBON")}>Post BON</Dropdown.Item>
                                             <Dropdown.Item as="button" type="button" onClick={() => this.dropdownMachType("OLE")}>OLE</Dropdown.Item>
                                         </DropdownButton>
                                     </Col>
