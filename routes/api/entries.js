@@ -2,7 +2,7 @@ const router = require('express').Router();
 let Entry = require('../../models/entry.model')
 
 router.route('/').get((req, res) => {
-    Entry.find().sort({updatedAt: -1})
+    Entry.find().sort({updatedAt: -1}).limit(100)
         .then(entries => res.json(entries))
         .catch(err => res.status(400).json('Error: '+ err));
 });

@@ -422,7 +422,7 @@ class BondScanPage extends Component {
                 :
                     <Row>
                         <Col>
-                            {this.state.materialIdExists && <h3>This is a new material ID</h3>}
+                            {!this.state.materialIdExists && <h3>This is a new material ID</h3>}
                             <Form onSubmit={this.onSubmit}>
                                 <Form.Group controlId="orderNumber">
                                     <Form.Label>IN</Form.Label>

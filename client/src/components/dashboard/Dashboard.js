@@ -87,7 +87,7 @@ class Dashboard extends Component {
           <td>{new Date(currententry.updatedAt).toLocaleTimeString()}</td>
           {this.state.bonlinkentry.map(bonlink => {
             if(bonlink.machineId == currententry.machineId && bonlink.outMaterialId == currententry.materialId){
-              return <React.Fragment>
+              return <React.Fragment key={bonlink._id}>
 
                 <td>{bonlink.materialIdA}</td>
                 <td>{bonlink.InA}</td>
