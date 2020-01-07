@@ -226,26 +226,40 @@ class ScanPage extends Component {
                                     if(res.data != null){
                                         console.log("Machine is Found ######")
                                         let order = res.data.ordering
+                                        let machineType = res.data.machineType
                                         //find the next ordering
                                         const machData = {
                                             machineType: res.data.machineType,
                                             ordering: order
                                         }
-                                        axios.post('api/confmach/findgreaterordering', machData).then(result => {
-                                            if(result.data != null){
-                                                console.log("Found next ordering #####")
-                                                if(result.data[0].ordering == this.state.machineData.ordering){
-                                                    console.log("correct flow process")
-                                                    this.setState({correctProcFlow: true})
+
+                                        //if same machinetype
+                                        console.log(this.state.machineData.machineType)
+                                        console.log(machineType)
+                                        if (machineType == this.state.machineData.machineType){
+                                            console.log("comparing same machine ####")
+                                            //find the next greater ordering
+                                            axios.post('api/confmach/findgreaterordering', machData).then(result => {
+                                                if(result.data != null){
+                                                    console.log("Found next ordering #####")
+                                                    if(result.data[0].ordering == this.state.machineData.ordering){
+                                                        console.log("correct flow process")
+                                                        this.setState({correctProcFlow: true})
+                                                    }else{
+                                                        console.log("incorrect process flow")
+                                                        this.setState({correctProcFlow: false})
+                                                    }
                                                 }else{
-                                                    console.log("incorrect process flow")
-                                                    this.setState({correctProcFlow: false})
+                                                    console.log("Next ordering not found #####")
                                                 }
-                                            }else{
-                                                console.log("Next ordering not found #####")
-                                            }
-                                        })
-                                        //compare with this.state.machineData.ordering
+                                            })
+
+                                        }else{
+                                            //else proceed
+                                            this.setState({correctProcFlow: true})
+                                            console.log("different machineType ####")
+
+                                        } 
                     
                                     }else{
                                         console.log("Machine is not Found ######")
