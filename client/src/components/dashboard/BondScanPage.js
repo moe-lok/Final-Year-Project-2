@@ -29,7 +29,8 @@ class BondScanPage extends Component {
             expectedOut:0,
             rejectAmt: 0,
             materialIdExists: false,
-            prevOut0: false,
+            raiseError: false,
+            errorMsg:'',
         }
     }
 
@@ -118,11 +119,27 @@ class BondScanPage extends Component {
                     if(response.data.Out < 1){
                         // material has not finished last process
                         console.log("previous process output is 0 ####")
-                        this.setState({prevOut0: true, procEntry: response.data})
+                        if(response.data.machineId == this.state.bonderId){
+                            console.log("previous material from this bonder ####")
+
+                            this.setState({raiseError: false, In: response.data.In})
+
+                            this.state.bonEntries.map((entry, i) => {
+
+                                if(entry.materialId == matId){
+                                    console.log("material already inserted inside")
+                                    this.setState({raiseError: true, errorMsg: "Material existed in bonder"})
+                                }
+
+                            })
+
+                        }else{
+                            this.setState({raiseError: true, errorMsg: "Please fill up the previous process"})
+                        }
                     }else{
                         console.log("previous process complete")
                         console.log(response.data.Out)
-                        this.setState({prevOut0: false, In: response.data.Out})
+                        this.setState({raiseError: false, In: response.data.Out})
                     }
 
                 }else{
@@ -356,6 +373,23 @@ class BondScanPage extends Component {
         );
     }
 
+    removeMat(cat){
+        console.log("attempting to delete all bon material A #######")
+        const del = {
+            machineId: this.state.bonderId,
+            materialCategory: cat
+        }
+
+        // delete all from material A
+        axios.post('/api/bon/deletematerial', del)
+        .then(resp => {
+            console.log(resp.data)
+            window.location = '/dashboard';
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
+
     materialTable(){
         return(
             <Container>
@@ -363,6 +397,9 @@ class BondScanPage extends Component {
                     <Col>
                         <h3>Material A</h3>
                         <h3>Qty: {this.state.QtyA}</h3>
+                        <Button onClick={() => this.removeMat("A")} variant="primary" size="sm">
+                        CLear A
+                        </Button>
                         <Table striped bordered hover size="sm">
                             <thead>
                                 <tr>
@@ -379,6 +416,9 @@ class BondScanPage extends Component {
                     <Col>
                         <h3>Material B</h3>
                         <h3>Qty: {this.state.QtyB}</h3>
+                        <Button onClick={() => this.removeMat("B")} variant="primary" size="sm">
+                        CLear B
+                        </Button>
                         <Table striped bordered hover size="sm">
                             <thead>
                                 <tr>
@@ -417,8 +457,8 @@ class BondScanPage extends Component {
     formIn(){
         return(
             <div>
-                {this.state.prevOut0 ?
-                    <h3>Please fill up the previous process</h3>
+                {this.state.raiseError ?
+                    <h3>{this.state.errorMsg}</h3>
                 :
                     <Row>
                         <Col>
