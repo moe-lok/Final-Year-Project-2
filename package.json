@@ -31,7 +31,7 @@
     "quagga": "^0.12.1",
     "react-router-dom": "^5.1.2",
     "validator": "^11.1.0",
-    "xlsx": "^0.15.4"
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "nodemon": "^1.19.2"
